@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(uuid())
+  name            String
+  email           String   @unique
+  password        String
+  university      String   @default("Stanford University")
+  phone           String?
+  role            String   @default("Student") // "Student", "Alum/Senior", "Admin"
+  avatarUrl       String?
+  verifiedStudent Boolean  @default(true)
+  dormLocation    String?
+  bio             String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  listedItems     Item[]              @relation("SellerItems")
+  buyerOrders     RentalTransaction[] @relation("BuyerTransactions")
+  sellerOrders    RentalTransaction[] @relation("SellerTransactions")
+  sentMessages    Inquiry[]           @relation("SentInquiries")
+  receivedMessages Inquiry[]          @relation("ReceivedInquiries")
+}
+
+model Item {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  category        String   // "Appliances", "Furniture", "Books", "Electronics", "Others"
+  listingType     String   // "RENT" or "SELL"
+  price           Float?   // One-time sale price (if SELL)
+  rentalRate      Float?   // Rate per day/month (if RENT)
+  rentalPeriod    String   @default("daily") // "daily" or "monthly"
+  securityDeposit Float    @default(0) // Refundable deposit for rentals
+  condition       String   // "Like New", "Good", "Fair"
+  images          String   // JSON array of image URLs
+  sellerId        String
+  isAvailable     Boolean  @default(true)
+  location        String?  // e.g. "East Campus / Dorm Hall B"
+  viewsCount      Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  seller          User                @relation("SellerItems", fields: [sellerId], references: [id], onDelete: Cascade)
+  transactions    RentalTransaction[]
+  inquiries       Inquiry[]
+}
+
+model RentalTransaction {
+  id              String   @id @default(uuid())
+  itemId          String
+  buyerId         String
+  sellerId        String
+  type            String   // "RENT" or "BUY"
+  startDate       DateTime?
+  endDate         DateTime?
+  totalAmount     Float
+  depositAmount   Float    @default(0)
+  status          String   @default("ACTIVE") // "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"
+  paymentStatus   String   @default("PAID")   // "PAID", "REFUNDED"
+  pickupLocation  String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  item            Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  buyer           User     @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: Cascade)
+  seller          User     @relation("SellerTransactions", fields: [sellerId], references: [id], onDelete: Cascade)
+}
+
+model Inquiry {
+  id          String   @id @default(uuid())
+  itemId      String
+  senderId    String
+  receiverId  String
+  message     String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  sender      User     @relation("SentInquiries", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver    User     @relation("ReceivedInquiries", fields: [receiverId], references: [id], onDelete: Cascade)
+}
