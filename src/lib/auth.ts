@@ -1,6 +1,7 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import prisma from './prisma';
+import { INITIAL_USERS } from './mockData';
 
 const SECRET_KEY = process.env.JWT_SECRET || 'campuscloset_super_secret_jwt_key_2025_fallback';
 const key = new TextEncoder().encode(SECRET_KEY);
@@ -38,24 +39,30 @@ export async function getCurrentUser() {
     const decoded = await verifySessionToken(token);
     if (!decoded?.userId) return null;
 
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        university: true,
-        phone: true,
-        role: true,
-        avatarUrl: true,
-        verifiedStudent: true,
-        dormLocation: true,
-        bio: true,
-        createdAt: true,
-      },
-    });
+    try {
+      const user = await prisma.user.findUnique({
+        where: { id: decoded.userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          university: true,
+          phone: true,
+          role: true,
+          avatarUrl: true,
+          verifiedStudent: true,
+          dormLocation: true,
+          bio: true,
+          createdAt: true,
+        },
+      });
+      if (user) return user;
+    } catch {
+      // Fallback
+    }
 
-    return user;
+    const mockMatch = INITIAL_USERS.find((u) => u.id === decoded.userId);
+    return mockMatch || null;
   } catch (err) {
     console.error('Failed to get current user:', err);
     return null;

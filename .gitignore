@@ -19,7 +19,13 @@ yarn-debug.log*
 yarn-error.log*
 
 # Environment files
+.env
 .env*.local
+.env.production
+
+# SQLite dev database
+*.db
+*.db-journal
 
 # OS files
 .DS_Store

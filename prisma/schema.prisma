@@ -1,12 +1,9 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
 }
 
@@ -17,15 +14,14 @@ model User {
   password        String
   university      String   @default("Stanford University")
   phone           String?
-  role            String   @default("Student") // "Student", "Alum/Senior", "Admin"
-  avatarUrl       String?
+  role            String   @default("Student")
+  avatarUrl       String?  @db.Text
   verifiedStudent Boolean  @default(true)
   dormLocation    String?
-  bio             String?
+  bio             String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // Relations
   listedItems     Item[]              @relation("SellerItems")
   buyerOrders     RentalTransaction[] @relation("BuyerTransactions")
   sellerOrders    RentalTransaction[] @relation("SellerTransactions")
@@ -36,23 +32,22 @@ model User {
 model Item {
   id              String   @id @default(uuid())
   title           String
-  description     String
-  category        String   // "Appliances", "Furniture", "Books", "Electronics", "Others"
-  listingType     String   // "RENT" or "SELL"
-  price           Float?   // One-time sale price (if SELL)
-  rentalRate      Float?   // Rate per day/month (if RENT)
-  rentalPeriod    String   @default("daily") // "daily" or "monthly"
-  securityDeposit Float    @default(0) // Refundable deposit for rentals
-  condition       String   // "Like New", "Good", "Fair"
-  images          String   // JSON array of image URLs
+  description     String   @db.Text
+  category        String
+  listingType     String
+  price           Float?
+  rentalRate      Float?
+  rentalPeriod    String   @default("daily")
+  securityDeposit Float    @default(0)
+  condition       String
+  images          String   @db.Text
   sellerId        String
   isAvailable     Boolean  @default(true)
-  location        String?  // e.g. "East Campus / Dorm Hall B"
+  location        String?
   viewsCount      Int      @default(0)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // Relations
   seller          User                @relation("SellerItems", fields: [sellerId], references: [id], onDelete: Cascade)
   transactions    RentalTransaction[]
   inquiries       Inquiry[]
@@ -63,19 +58,18 @@ model RentalTransaction {
   itemId          String
   buyerId         String
   sellerId        String
-  type            String   // "RENT" or "BUY"
+  type            String
   startDate       DateTime?
   endDate         DateTime?
   totalAmount     Float
   depositAmount   Float    @default(0)
-  status          String   @default("ACTIVE") // "PENDING", "ACTIVE", "COMPLETED", "CANCELLED"
-  paymentStatus   String   @default("PAID")   // "PAID", "REFUNDED"
+  status          String   @default("ACTIVE")
+  paymentStatus   String   @default("PAID")
   pickupLocation  String?
-  notes           String?
+  notes           String?  @db.Text
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  // Relations
   item            Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   buyer           User     @relation("BuyerTransactions", fields: [buyerId], references: [id], onDelete: Cascade)
   seller          User     @relation("SellerTransactions", fields: [sellerId], references: [id], onDelete: Cascade)
@@ -86,10 +80,9 @@ model Inquiry {
   itemId      String
   senderId    String
   receiverId  String
-  message     String
+  message     String   @db.Text
   createdAt   DateTime @default(now())
 
-  // Relations
   item        Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
   sender      User     @relation("SentInquiries", fields: [senderId], references: [id], onDelete: Cascade)
   receiver    User     @relation("ReceivedInquiries", fields: [receiverId], references: [id], onDelete: Cascade)

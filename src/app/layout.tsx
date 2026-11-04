@@ -4,6 +4,7 @@ import { AuthProvider } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import AuthModal from '@/components/AuthModal';
+import BottomNav from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'CampusCloset - P2P Student Rental & Marketplace',
@@ -18,11 +19,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className="bg-[#121212] text-zinc-100 min-h-screen flex flex-col font-sans campus-grid-bg antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+      <body className="bg-[#0b1120] text-slate-100 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-500/30 selection:text-sky-300 pb-16 sm:pb-0">
         <AuthProvider>
           <Navbar />
           <main className="flex-1 w-full">{children}</main>
           <Footer />
+          <BottomNav />
           <AuthModal />
         </AuthProvider>
       </body>
